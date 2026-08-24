@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Mini SOC | Security Operations Center</title>
+
+    <link
+        rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>"
+    >
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="brand">
+
+        <div class="brand-icon">
+            🛡️
+        </div>
+
+        <div>
+            <h1>Mini SOC</h1>
+            <p>Security Operations Center</p>
+        </div>
+
+    </div>
+
+    <div class="status">
+
+        <span class="status-dot"></span>
+
+        <span>SYSTEM ONLINE</span>
+
+    </div>
+
+</header>
+
+
+<main class="dashboard">
+
+
+    <!-- =========================
+         TOP STATISTICS
+    ========================== -->
+
+    <section class="stats-grid">
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                📡
+            </div>
+
+            <div>
+
+                <h3>Total Events</h3>
+
+                <p id="total-events">
+                    --
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                🚨
+            </div>
+
+            <div>
+
+                <h3>Total Incidents</h3>
+
+                <p id="total-incidents">
+                    --
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat-card critical">
+
+            <div class="stat-icon">
+                🔴
+            </div>
+
+            <div>
+
+                <h3>Critical</h3>
+
+                <p id="critical-incidents">
+                    --
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat-card open">
+
+            <div class="stat-icon">
+                ⚠️
+            </div>
+
+            <div>
+
+                <h3>Open</h3>
+
+                <p id="open-incidents">
+                    --
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         ANALYTICS
+    ========================== -->
+
+    <section class="analytics-grid">
+
+
+        <!-- INCIDENT STATUS -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+
+                <span class="panel-icon">
+                    📋
+                </span>
+
+                <h2>Incident Status</h2>
+
+            </div>
+
+
+            <div class="metric">
+
+                <span>
+                    OPEN
+                </span>
+
+                <strong id="status-open">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="metric">
+
+                <span>
+                    INVESTIGATING
+                </span>
+
+                <strong id="status-investigating">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="metric">
+
+                <span>
+                    RESOLVED
+                </span>
+
+                <strong id="status-resolved">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- SEVERITY -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+
+                <span class="panel-icon">
+                    🚨
+                </span>
+
+                <h2>Severity</h2>
+
+            </div>
+
+
+            <div class="metric critical-text">
+
+                <span>
+                    CRITICAL
+                </span>
+
+                <strong id="severity-critical">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="metric high-text">
+
+                <span>
+                    HIGH
+                </span>
+
+                <strong id="severity-high">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="metric medium-text">
+
+                <span>
+                    MEDIUM
+                </span>
+
+                <strong id="severity-medium">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="metric low-text">
+
+                <span>
+                    LOW
+                </span>
+
+                <strong id="severity-low">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =========================
+         SECURITY INCIDENTS
+    ========================== -->
+
+    <section class="panel incidents-panel">
+
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2>
+                    🚨 Security Incidents
+                </h2>
+
+                <p class="panel-subtitle">
+                    Detected security events requiring analyst attention
+                </p>
+
+            </div>
+
+
+            <button
+                class="refresh-button"
+                onclick="loadDashboard()"
+            >
+                ↻ Refresh
+            </button>
+
+        </div>
+
+
+
+        <!-- FILTERS -->
+
+        <div class="filters">
+
+
+            <div class="filter-group">
+
+                <label for="search-input">
+                    Search
+                </label>
+
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="🔎 User, IP, incident..."
+                    oninput="filterIncidents()"
+                >
+
+            </div>
+
+
+
+            <div class="filter-group">
+
+                <label for="severity-filter">
+                    Severity
+                </label>
+
+                <select
+                    id="severity-filter"
+                    onchange="filterIncidents()"
+                >
+
+                    <option value="ALL">
+                        All Severities
+                    </option>
+
+                    <option value="CRITICAL">
+                        Critical
+                    </option>
+
+                    <option value="HIGH">
+                        High
+                    </option>
+
+                    <option value="MEDIUM">
+                        Medium
+                    </option>
+
+                    <option value="LOW">
+                        Low
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <div class="filter-group">
+
+                <label for="status-filter">
+                    Status
+                </label>
+
+                <select
+                    id="status-filter"
+                    onchange="filterIncidents()"
+                >
+
+                    <option value="ALL">
+                        All Statuses
+                    </option>
+
+                    <option value="OPEN">
+                        Open
+                    </option>
+
+                    <option value="INVESTIGATING">
+                        Investigating
+                    </option>
+
+                    <option value="RESOLVED">
+                        Resolved
+                    </option>
+
+                </select>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- INCIDENT CARDS -->
+
+        <div id="incidents-container">
+
+            <div class="loading">
+
+                <div class="loading-spinner"></div>
+
+                <p>
+                    Loading security incidents...
+                </p>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- =========================
+         INVESTIGATION MODAL
+    ========================== -->
+
+    <div
+        id="investigation-modal"
+        class="modal hidden"
+    >
+
+        <div class="modal-content">
+
+
+            <div class="modal-header">
+
+                <div>
+
+                    <span class="modal-label">
+                        SOC ANALYST VIEW
+                    </span>
+
+                    <h2>
+                        🔍 Incident Investigation
+                    </h2>
+
+                </div>
+
+
+                <button
+                    class="close-button"
+                    onclick="closeInvestigation()"
+                    aria-label="Close investigation"
+                >
+                    ✕
+                </button>
+
+            </div>
+
+
+            <div id="investigation-content">
+
+                <div class="loading">
+
+                    Loading investigation...
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+</main>
+
+
+<script src="app.js"></script>
+
+</body>
+
+</html>
