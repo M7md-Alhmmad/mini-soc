@@ -4,7 +4,7 @@ import argparse
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="mini-soc",
-        description="Run the Mini SOC dashboard, monitor, detector, or simulators."
+        description="Run the Mini SOC dashboard, monitor, detector, or simulators.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -17,8 +17,7 @@ def build_parser():
 
     simulate = subparsers.add_parser("simulate", help="Insert a safe attack scenario")
     simulate.add_argument(
-        "scenario",
-        choices=("brute-force", "port-scan", "account-compromise")
+        "scenario", choices=("brute-force", "port-scan", "account-compromise")
     )
     simulate.add_argument("--username", default=None)
     simulate.add_argument("--ip", default=None)
@@ -34,15 +33,19 @@ def main():
 
     if args.command == "serve":
         import uvicorn
+
         uvicorn.run("src.api:app", host=args.host, port=args.port)
     elif args.command == "monitor":
         from .main import monitor_soc
+
         monitor_soc()
     elif args.command == "detect":
         from .detection_engine import run_detection
+
         run_detection()
     elif args.command == "generate":
         from .log_generator import generate_logs
+
         if args.count < 1:
             raise SystemExit("--count must be at least 1")
         generate_logs(args.count)

@@ -1,303 +1,163 @@
-const API_URL = window.location.protocol === "file:"
+const API_URL =
+  window.location.protocol === "file:"
     ? "http://127.0.0.1:8000"
     : window.location.origin;
 
 let allIncidents = [];
 
-
-/* =========================================================
-   LOAD STATISTICS
-========================================================= */
-
 async function loadStats() {
+  const response = await fetch(`${API_URL}/stats`);
 
-    const response = await fetch(
-        `${API_URL}/stats`
-    );
+  if (!response.ok) {
+    throw new Error("Failed to load statistics");
+  }
+
+  const data = await response.json();
+
+  document.getElementById("total-events").textContent = data.total_events;
+
+  document.getElementById("total-incidents").textContent = data.total_incidents;
+
+  document.getElementById("critical-incidents").textContent =
+    data.severity.critical;
+
+  document.getElementById("open-incidents").textContent = data.status.open;
+
+  document.getElementById("status-open").textContent = data.status.open;
+
+  document.getElementById("status-investigating").textContent =
+    data.status.investigating;
+
+  document.getElementById("status-resolved").textContent = data.status.resolved;
+
+  document.getElementById("severity-critical").textContent =
+    data.severity.critical;
+
+  document.getElementById("severity-high").textContent = data.severity.high;
+
+  document.getElementById("severity-medium").textContent = data.severity.medium;
+
+  document.getElementById("severity-low").textContent = data.severity.low;
+}
+
+async function updateStatus(incidentId, status) {
+  try {
+    const response = await fetch(`${API_URL}/incidents/${incidentId}/status`, {
+      method: "PATCH",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+        status: status,
+      }),
+    });
 
     if (!response.ok) {
-        throw new Error(
-            "Failed to load statistics"
-        );
+      alert("Failed to update incident status.");
+
+      return;
     }
 
-    const data = await response.json();
-
-
-    document.getElementById(
-        "total-events"
-    ).textContent =
-        data.total_events;
-
-
-    document.getElementById(
-        "total-incidents"
-    ).textContent =
-        data.total_incidents;
-
-
-    document.getElementById(
-        "critical-incidents"
-    ).textContent =
-        data.severity.critical;
-
-
-    document.getElementById(
-        "open-incidents"
-    ).textContent =
-        data.status.open;
-
-
-    document.getElementById(
-        "status-open"
-    ).textContent =
-        data.status.open;
-
-
-    document.getElementById(
-        "status-investigating"
-    ).textContent =
-        data.status.investigating;
-
-
-    document.getElementById(
-        "status-resolved"
-    ).textContent =
-        data.status.resolved;
-
-
-    document.getElementById(
-        "severity-critical"
-    ).textContent =
-        data.severity.critical;
-
-
-    document.getElementById(
-        "severity-high"
-    ).textContent =
-        data.severity.high;
-
-
-    document.getElementById(
-        "severity-medium"
-    ).textContent =
-        data.severity.medium;
-
-
-    document.getElementById(
-        "severity-low"
-    ).textContent =
-        data.severity.low;
+    await loadDashboard();
+  } catch (error) {
+    console.error(error);
+    alert("Unable to connect to the SOC API.");
+  }
 }
 
+async function updateNote(incidentId) {
+  const noteInput = document.getElementById(`note-${incidentId}`);
 
-/* =========================================================
-   UPDATE INCIDENT STATUS
-========================================================= */
+  try {
+    const response = await fetch(`${API_URL}/incidents/${incidentId}/note`, {
+      method: "PATCH",
 
-async function updateStatus(
-    incidentId,
-    status
-) {
+      headers: {
+        "Content-Type": "application/json",
+      },
 
-    try {
-        const response = await fetch(
-            `${API_URL}/incidents/${incidentId}/status`,
-            {
-            method: "PATCH",
+      body: JSON.stringify({
+        note: noteInput.value,
+      }),
+    });
 
-            headers: {
-                "Content-Type":
-                    "application/json"
-            },
+    if (!response.ok) {
+      alert("Failed to update analyst note.");
 
-            body: JSON.stringify({
-                status: status
-            })
-            }
-        );
-
-
-        if (!response.ok) {
-
-        alert(
-            "Failed to update incident status."
-        );
-
-            return;
-        }
-
-
-        await loadDashboard();
-    } catch (error) {
-        console.error(error);
-        alert("Unable to connect to the SOC API.");
+      return;
     }
+
+    await loadDashboard();
+  } catch (error) {
+    console.error(error);
+    alert("Unable to connect to the SOC API.");
+  }
 }
-
-
-/* =========================================================
-   UPDATE ANALYST NOTE
-========================================================= */
-
-async function updateNote(
-    incidentId
-) {
-
-    const noteInput =
-        document.getElementById(
-            `note-${incidentId}`
-        );
-
-
-    try {
-        const response = await fetch(
-            `${API_URL}/incidents/${incidentId}/note`,
-            {
-            method: "PATCH",
-
-            headers: {
-                "Content-Type":
-                    "application/json"
-            },
-
-            body: JSON.stringify({
-                note: noteInput.value
-            })
-            }
-        );
-
-
-        if (!response.ok) {
-
-        alert(
-            "Failed to update analyst note."
-        );
-
-            return;
-        }
-
-
-        await loadDashboard();
-    } catch (error) {
-        console.error(error);
-        alert("Unable to connect to the SOC API.");
-    }
-}
-
-
-/* =========================================================
-   RISK SCORE
-========================================================= */
 
 function getRiskLevel(score) {
+  if (score >= 80) {
+    return "CRITICAL";
+  }
 
-    if (score >= 80) {
-        return "CRITICAL";
-    }
+  if (score >= 60) {
+    return "HIGH";
+  }
 
-    if (score >= 60) {
-        return "HIGH";
-    }
+  if (score >= 30) {
+    return "MEDIUM";
+  }
 
-    if (score >= 30) {
-        return "MEDIUM";
-    }
-
-    return "LOW";
+  return "LOW";
 }
-
-
-/* =========================================================
-   FORMAT TIMESTAMP
-========================================================= */
 
 function formatTimestamp(timestamp) {
+  if (!timestamp) {
+    return "Unknown time";
+  }
 
-    if (!timestamp) {
-        return "Unknown time";
-    }
+  const date = new Date(timestamp);
 
-    const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return timestamp;
+  }
 
-    if (Number.isNaN(date.getTime())) {
-        return timestamp;
-    }
-
-    return date.toLocaleString();
+  return date.toLocaleString();
 }
-
-
-/* =========================================================
-   ESCAPE HTML
-========================================================= */
 
 function escapeHTML(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
 
-    if (
-        value === null ||
-        value === undefined
-    ) {
-        return "";
-    }
-
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
+function getTimelineActionLabel(action) {
+  const labels = {
+    INCIDENT_CREATED: "🚨 Incident Created",
 
-/* =========================================================
-   TIMELINE ACTION LABEL
-========================================================= */
+    STATUS_CHANGED: "🔄 Status Changed",
 
-function getTimelineActionLabel(
-    action
-) {
+    ANALYST_NOTE_UPDATED: "📝 Analyst Note Updated",
 
-    const labels = {
+    RESPONSE_ACTION_COMPLETED: "🛡️ Response Action Completed",
 
-        INCIDENT_CREATED:
-            "🚨 Incident Created",
+    RESPONSE_ACTION_REOPENED: "↩️ Response Action Reopened",
+  };
 
-        STATUS_CHANGED:
-            "🔄 Status Changed",
-
-        ANALYST_NOTE_UPDATED:
-            "📝 Analyst Note Updated",
-
-        RESPONSE_ACTION_COMPLETED:
-            "🛡️ Response Action Completed",
-
-        RESPONSE_ACTION_REOPENED:
-            "↩️ Response Action Reopened"
-    };
-
-
-    return (
-        labels[action] ||
-        `⚡ ${action}`
-    );
+  return labels[action] || `⚡ ${action}`;
 }
 
-
-/* =========================================================
-   RENDER INCIDENT HISTORY
-========================================================= */
-
-function renderIncidentHistory(
-    history
-) {
-
-    if (
-        !history ||
-        history.length === 0
-    ) {
-
-        return `
+function renderIncidentHistory(history) {
+  if (!history || history.length === 0) {
+    return `
             <div class="timeline-item">
 
                 <span></span>
@@ -317,34 +177,17 @@ function renderIncidentHistory(
 
             </div>
         `;
-    }
+  }
 
+  return history
+    .map((entry) => {
+      const action = escapeHTML(getTimelineActionLabel(entry.action));
 
-    return history
-        .map(
-            entry => {
+      const details = escapeHTML(entry.details);
 
-                const action =
-                    escapeHTML(
-                        getTimelineActionLabel(
-                            entry.action
-                        )
-                    );
+      const timestamp = escapeHTML(formatTimestamp(entry.timestamp));
 
-                const details =
-                    escapeHTML(
-                        entry.details
-                    );
-
-                const timestamp =
-                    escapeHTML(
-                        formatTimestamp(
-                            entry.timestamp
-                        )
-                    );
-
-
-                return `
+      return `
                     <div class="timeline-item">
 
                         <span></span>
@@ -367,46 +210,32 @@ function renderIncidentHistory(
 
                     </div>
                 `;
-            }
-        )
-        .join("");
+    })
+    .join("");
 }
 
-
-/* =========================================================
-   RESPONSE ACTIONS
-========================================================= */
-
-function renderResponseActions(
-    actions,
-    incidentId
-) {
-
-    if (!actions || actions.length === 0) {
-        return `
+function renderResponseActions(actions, incidentId) {
+  if (!actions || actions.length === 0) {
+    return `
             <p class="response-actions-empty">
                 No response actions are available.
             </p>
         `;
-    }
+  }
 
-    return actions
-        .map(action => {
-            const actionType =
-                escapeHTML(action.action_type);
+  return actions
+    .map((action) => {
+      const actionType = escapeHTML(action.action_type);
 
-            const label =
-                escapeHTML(action.label);
+      const label = escapeHTML(action.label);
 
-            const completedAt = action.completed_at
-                ? `Completed ${escapeHTML(
-                    formatTimestamp(action.completed_at)
-                )}`
-                : "Not completed";
+      const completedAt = action.completed_at
+        ? `Completed ${escapeHTML(formatTimestamp(action.completed_at))}`
+        : "Not completed";
 
-            return `
+      return `
                 <label class="response-action ${
-                    action.completed ? "completed" : ""
+                  action.completed ? "completed" : ""
                 }">
                     <input
                         type="checkbox"
@@ -425,69 +254,46 @@ function renderResponseActions(
                     </span>
                 </label>
             `;
-        })
-        .join("");
+    })
+    .join("");
 }
 
+async function updateResponseAction(incidentId, actionType, checkbox) {
+  checkbox.disabled = true;
 
-async function updateResponseAction(
-    incidentId,
-    actionType,
-    checkbox
-) {
+  try {
+    const response = await fetch(
+      `${API_URL}/incidents/${incidentId}/response-actions/${actionType}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          completed: checkbox.checked,
+        }),
+      },
+    );
 
-    checkbox.disabled = true;
-
-    try {
-        const response = await fetch(
-            `${API_URL}/incidents/${incidentId}/response-actions/${actionType}`,
-            {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    completed: checkbox.checked
-                })
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                "Failed to update response action"
-            );
-        }
-
-        await openInvestigation(incidentId);
+    if (!response.ok) {
+      throw new Error("Failed to update response action");
     }
-    catch (error) {
-        console.error(error);
-        alert("Unable to update the response action.");
-        await openInvestigation(incidentId);
-    }
+
+    await openInvestigation(incidentId);
+  } catch (error) {
+    console.error(error);
+    alert("Unable to update the response action.");
+    await openInvestigation(incidentId);
+  }
 }
 
+function renderIncidents(incidents) {
+  const container = document.getElementById("incidents-container");
 
-/* =========================================================
-   RENDER INCIDENTS
-========================================================= */
+  container.innerHTML = "";
 
-function renderIncidents(
-    incidents
-) {
-
-    const container =
-        document.getElementById(
-            "incidents-container"
-        );
-
-
-    container.innerHTML = "";
-
-
-    if (incidents.length === 0) {
-
-        container.innerHTML = `
+  if (incidents.length === 0) {
+    container.innerHTML = `
             <div class="loading">
 
                 <p>
@@ -497,24 +303,15 @@ function renderIncidents(
             </div>
         `;
 
-        return;
-    }
+    return;
+  }
 
+  incidents.forEach((incident) => {
+    const card = document.createElement("div");
 
-    incidents.forEach(
-        incident => {
+    card.className = "incident";
 
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className =
-                "incident";
-
-
-            /*
+    /*
                 Database incident structure:
 
                 0  id
@@ -530,70 +327,49 @@ function renderIncidents(
                 10 risk_score
             */
 
+    const id = incident[0];
 
-            const id =
-                incident[0];
+    const type = incident[1];
 
-            const type =
-                incident[1];
+    const severity = incident[2];
 
-            const severity =
-                incident[2];
+    const username = incident[3];
 
-            const username =
-                incident[3];
+    const ip = incident[4];
 
-            const ip =
-                incident[4];
+    const failedAttempts = incident[5];
 
-            const failedAttempts =
-                incident[5];
+    const timestamp = incident[6];
 
-            const timestamp =
-                incident[6];
+    const status = incident[7];
 
-            const status =
-                incident[7];
+    const mitre = incident[8];
 
-            const mitre =
-                incident[8];
+    const note = incident[9] || "";
 
-            const note =
-                incident[9] || "";
+    const riskScore = Number(incident[10] || 0);
 
-            const riskScore =
-                Number(
-                    incident[10] || 0
-                );
+    const riskLevel = getRiskLevel(riskScore);
 
+    const badgeClass =
+      severity === "CRITICAL"
+        ? "badge-critical"
+        : severity === "HIGH"
+          ? "badge-high"
+          : severity === "MEDIUM"
+            ? "badge-medium"
+            : "badge-low";
 
-            const riskLevel =
-                getRiskLevel(
-                    riskScore
-                );
+    const riskClass =
+      riskScore >= 80
+        ? "risk-critical"
+        : riskScore >= 60
+          ? "risk-high"
+          : riskScore >= 30
+            ? "risk-medium"
+            : "risk-low";
 
-
-            const badgeClass =
-                severity === "CRITICAL"
-                    ? "badge-critical"
-                    : severity === "HIGH"
-                    ? "badge-high"
-                    : severity === "MEDIUM"
-                    ? "badge-medium"
-                    : "badge-low";
-
-
-            const riskClass =
-                riskScore >= 80
-                    ? "risk-critical"
-                    : riskScore >= 60
-                    ? "risk-high"
-                    : riskScore >= 30
-                    ? "risk-medium"
-                    : "risk-low";
-
-
-            card.innerHTML = `
+    card.innerHTML = `
 
                 <div class="incident-header">
 
@@ -741,11 +517,7 @@ function renderIncidents(
 
                         <option
                             value="OPEN"
-                            ${
-                                status === "OPEN"
-                                    ? "selected"
-                                    : ""
-                            }
+                            ${status === "OPEN" ? "selected" : ""}
                         >
                             OPEN
                         </option>
@@ -753,11 +525,7 @@ function renderIncidents(
 
                         <option
                             value="INVESTIGATING"
-                            ${
-                                status === "INVESTIGATING"
-                                    ? "selected"
-                                    : ""
-                            }
+                            ${status === "INVESTIGATING" ? "selected" : ""}
                         >
                             INVESTIGATING
                         </option>
@@ -765,11 +533,7 @@ function renderIncidents(
 
                         <option
                             value="RESOLVED"
-                            ${
-                                status === "RESOLVED"
-                                    ? "selected"
-                                    : ""
-                            }
+                            ${status === "RESOLVED" ? "selected" : ""}
                         >
                             RESOLVED
                         </option>
@@ -800,243 +564,111 @@ function renderIncidents(
 
             `;
 
-
-            container.appendChild(
-                card
-            );
-        }
-    );
+    container.appendChild(card);
+  });
 }
-
-
-/* =========================================================
-   FILTER INCIDENTS
-========================================================= */
 
 function filterIncidents() {
+  const search = document.getElementById("search-input").value.toLowerCase();
 
-    const search =
-        document.getElementById(
-            "search-input"
-        ).value.toLowerCase();
+  const severity = document.getElementById("severity-filter").value;
 
+  const status = document.getElementById("status-filter").value;
 
-    const severity =
-        document.getElementById(
-            "severity-filter"
-        ).value;
+  const filtered = allIncidents.filter((incident) => {
+    const matchesSearch = incident.join(" ").toLowerCase().includes(search);
 
+    const matchesSeverity = severity === "ALL" || incident[2] === severity;
 
-    const status =
-        document.getElementById(
-            "status-filter"
-        ).value;
+    const matchesStatus = status === "ALL" || incident[7] === status;
 
+    return matchesSearch && matchesSeverity && matchesStatus;
+  });
 
-    const filtered =
-        allIncidents.filter(
-            incident => {
-
-                const matchesSearch =
-                    incident
-                        .join(" ")
-                        .toLowerCase()
-                        .includes(search);
-
-
-                const matchesSeverity =
-                    severity === "ALL" ||
-                    incident[2] === severity;
-
-
-                const matchesStatus =
-                    status === "ALL" ||
-                    incident[7] === status;
-
-
-                return (
-                    matchesSearch &&
-                    matchesSeverity &&
-                    matchesStatus
-                );
-            }
-        );
-
-
-    renderIncidents(
-        filtered
-    );
+  renderIncidents(filtered);
 }
-
-
-/* =========================================================
-   LOAD INCIDENTS
-========================================================= */
 
 async function loadIncidents() {
+  const response = await fetch(`${API_URL}/incidents`);
 
-    const response =
-        await fetch(
-            `${API_URL}/incidents`
-        );
+  if (!response.ok) {
+    throw new Error("Failed to load incidents");
+  }
 
+  const data = await response.json();
 
-    if (!response.ok) {
+  allIncidents = data.incidents;
 
-        throw new Error(
-            "Failed to load incidents"
-        );
-    }
-
-
-    const data =
-        await response.json();
-
-
-    allIncidents =
-        data.incidents;
-
-
-    filterIncidents();
+  filterIncidents();
 }
 
+async function openInvestigation(incidentId) {
+  const modal = document.getElementById("investigation-modal");
 
-/* =========================================================
-   INVESTIGATION
-========================================================= */
+  const content = document.getElementById("investigation-content");
 
-async function openInvestigation(
-    incidentId
-) {
+  modal.classList.remove("hidden");
 
-    const modal =
-        document.getElementById(
-            "investigation-modal"
-        );
+  content.innerHTML = "Loading investigation...";
 
-
-    const content =
-        document.getElementById(
-            "investigation-content"
-        );
-
-
-    modal.classList.remove(
-        "hidden"
-    );
-
-
-    content.innerHTML =
-        "Loading investigation...";
-
-
-    try {
-
-        /*
+  try {
+    /*
             Load incident details, response actions,
             and persisted audit history simultaneously.
         */
 
-        const [
-            incidentResponse,
-            historyResponse,
-            responseActionsResponse
-        ] = await Promise.all([
+    const [incidentResponse, historyResponse, responseActionsResponse] =
+      await Promise.all([
+        fetch(`${API_URL}/incidents/${incidentId}`),
 
-            fetch(
-                `${API_URL}/incidents/${incidentId}`
-            ),
+        fetch(`${API_URL}/incidents/${incidentId}/history`),
 
-            fetch(
-                `${API_URL}/incidents/${incidentId}/history`
-            ),
+        fetch(`${API_URL}/incidents/${incidentId}/response-actions`),
+      ]);
 
-            fetch(
-                `${API_URL}/incidents/${incidentId}/response-actions`
-            )
-        ]);
+    if (!incidentResponse.ok) {
+      throw new Error("Incident not found");
+    }
 
+    if (!historyResponse.ok) {
+      throw new Error("Unable to load incident history");
+    }
 
-        if (!incidentResponse.ok) {
+    if (!responseActionsResponse.ok) {
+      throw new Error("Unable to load response actions");
+    }
 
-            throw new Error(
-                "Incident not found"
-            );
-        }
+    const incident = await incidentResponse.json();
 
+    const historyData = await historyResponse.json();
 
-        if (!historyResponse.ok) {
+    const responseActionsData = await responseActionsResponse.json();
 
-            throw new Error(
-                "Unable to load incident history"
-            );
-        }
+    const history = historyData.history || [];
 
+    const responseActions = responseActionsData.actions || [];
 
-        if (!responseActionsResponse.ok) {
+    const riskScore = Number(incident.risk_score || 0);
 
-            throw new Error(
-                "Unable to load response actions"
-            );
-        }
+    const riskLevel = getRiskLevel(riskScore);
 
+    const riskClass =
+      riskScore >= 80
+        ? "risk-critical"
+        : riskScore >= 60
+          ? "risk-high"
+          : riskScore >= 30
+            ? "risk-medium"
+            : "risk-low";
 
-        const incident =
-            await incidentResponse.json();
+    const timelineHTML = renderIncidentHistory(history);
 
+    const responseActionsHTML = renderResponseActions(
+      responseActions,
+      incidentId,
+    );
 
-        const historyData =
-            await historyResponse.json();
-
-
-        const responseActionsData =
-            await responseActionsResponse.json();
-
-
-        const history =
-            historyData.history || [];
-
-
-        const responseActions =
-            responseActionsData.actions || [];
-
-
-        const riskScore =
-            Number(
-                incident.risk_score || 0
-            );
-
-
-        const riskLevel =
-            getRiskLevel(
-                riskScore
-            );
-
-
-        const riskClass =
-            riskScore >= 80
-                ? "risk-critical"
-                : riskScore >= 60
-                ? "risk-high"
-                : riskScore >= 30
-                ? "risk-medium"
-                : "risk-low";
-
-
-        const timelineHTML =
-            renderIncidentHistory(
-                history
-            );
-
-
-        const responseActionsHTML =
-            renderResponseActions(
-                responseActions,
-                incidentId
-            );
-
-
-        content.innerHTML = `
+    content.innerHTML = `
 
             <div class="investigation-grid">
 
@@ -1139,9 +771,7 @@ async function openInvestigation(
                     </span>
 
                     <strong>
-                        ${escapeHTML(
-                            incident.mitre_technique
-                        )}
+                        ${escapeHTML(incident.mitre_technique)}
                     </strong>
 
                 </div>
@@ -1210,10 +840,8 @@ async function openInvestigation(
 
                 <p>
                     ${
-                        escapeHTML(
-                            incident.analyst_note
-                        ) ||
-                        "No analyst note recorded."
+                      escapeHTML(incident.analyst_note) ||
+                      "No analyst note recorded."
                     }
                 </p>
 
@@ -1252,97 +880,44 @@ async function openInvestigation(
             </div>
 
         `;
+  } catch (error) {
+    console.error(error);
 
-    }
-
-    catch (error) {
-
-        console.error(
-            error
-        );
-
-
-        content.innerHTML = `
+    content.innerHTML = `
 
             <p class="error">
                 Unable to load investigation.
             </p>
 
         `;
-    }
+  }
 }
-
-
-/* =========================================================
-   CLOSE INVESTIGATION
-========================================================= */
 
 function closeInvestigation() {
-
-    document
-        .getElementById(
-            "investigation-modal"
-        )
-        .classList.add(
-            "hidden"
-        );
+  document.getElementById("investigation-modal").classList.add("hidden");
 }
 
-
-document.addEventListener("keydown", event => {
-    if (event.key === "Escape") {
-        closeInvestigation();
-    }
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeInvestigation();
+  }
 });
 
-
-/* =========================================================
-   LOAD EVERYTHING
-========================================================= */
-
 async function loadDashboard() {
+  try {
+    await Promise.all([loadStats(), loadIncidents()]);
+  } catch (error) {
+    console.error(error);
 
-    try {
-
-        await Promise.all([
-            loadStats(),
-            loadIncidents()
-        ]);
-
-    }
-
-    catch (error) {
-
-        console.error(
-            error
-        );
-
-
-        document.getElementById(
-            "incidents-container"
-        ).innerHTML = `
+    document.getElementById("incidents-container").innerHTML = `
 
             <p class="error">
                 Unable to connect to SOC API.
             </p>
 
         `;
-    }
+  }
 }
 
-
-/* =========================================================
-   INITIAL LOAD
-========================================================= */
-
 loadDashboard();
-
-
-/*
-    Refresh dashboard every 5 seconds.
-*/
-
-setInterval(
-    loadDashboard,
-    5000
-);
+setInterval(loadDashboard, 5000);

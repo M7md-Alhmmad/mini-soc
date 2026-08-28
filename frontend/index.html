@@ -1,488 +1,233 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
 
-<head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Mini SOC | Security Operations Center</title>
 
     <link
-        rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>"
-    >
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>"
+    />
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
-</head>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<body>
-
-<header class="topbar">
-
-    <div class="brand">
-
-        <div class="brand-icon">
-            🛡️
-        </div>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">🛡️</div>
 
         <div>
-            <h1>Mini SOC</h1>
-            <p>Security Operations Center</p>
+          <h1>Mini SOC</h1>
+          <p>Security Operations Center</p>
         </div>
+      </div>
 
-    </div>
-
-    <div class="status">
-
+      <div class="status">
         <span class="status-dot"></span>
 
         <span>SYSTEM ONLINE</span>
+      </div>
+    </header>
 
-    </div>
-
-</header>
-
-
-<main class="dashboard">
-
-
-    <!-- =========================
-         TOP STATISTICS
-    ========================== -->
-
-    <section class="stats-grid">
-
+    <main class="dashboard">
+      <section class="stats-grid">
         <div class="stat-card">
+          <div class="stat-icon">📡</div>
 
-            <div class="stat-icon">
-                📡
-            </div>
+          <div>
+            <h3>Total Events</h3>
 
-            <div>
-
-                <h3>Total Events</h3>
-
-                <p id="total-events">
-                    --
-                </p>
-
-            </div>
-
+            <p id="total-events">--</p>
+          </div>
         </div>
 
-
         <div class="stat-card">
+          <div class="stat-icon">🚨</div>
 
-            <div class="stat-icon">
-                🚨
-            </div>
+          <div>
+            <h3>Total Incidents</h3>
 
-            <div>
-
-                <h3>Total Incidents</h3>
-
-                <p id="total-incidents">
-                    --
-                </p>
-
-            </div>
-
+            <p id="total-incidents">--</p>
+          </div>
         </div>
-
 
         <div class="stat-card critical">
+          <div class="stat-icon">🔴</div>
 
-            <div class="stat-icon">
-                🔴
-            </div>
+          <div>
+            <h3>Critical</h3>
 
-            <div>
-
-                <h3>Critical</h3>
-
-                <p id="critical-incidents">
-                    --
-                </p>
-
-            </div>
-
+            <p id="critical-incidents">--</p>
+          </div>
         </div>
-
 
         <div class="stat-card open">
+          <div class="stat-icon">⚠️</div>
 
-            <div class="stat-icon">
-                ⚠️
-            </div>
+          <div>
+            <h3>Open</h3>
 
-            <div>
-
-                <h3>Open</h3>
-
-                <p id="open-incidents">
-                    --
-                </p>
-
-            </div>
-
+            <p id="open-incidents">--</p>
+          </div>
         </div>
+      </section>
 
-    </section>
+      <section class="analytics-grid">
+        <div class="panel">
+          <div class="panel-title">
+            <span class="panel-icon"> 📋 </span>
 
+            <h2>Incident Status</h2>
+          </div>
 
+          <div class="metric">
+            <span> OPEN </span>
 
-    <!-- =========================
-         ANALYTICS
-    ========================== -->
+            <strong id="status-open"> 0 </strong>
+          </div>
 
-    <section class="analytics-grid">
+          <div class="metric">
+            <span> INVESTIGATING </span>
 
+            <strong id="status-investigating"> 0 </strong>
+          </div>
 
-        <!-- INCIDENT STATUS -->
+          <div class="metric">
+            <span> RESOLVED </span>
+
+            <strong id="status-resolved"> 0 </strong>
+          </div>
+        </div>
 
         <div class="panel">
+          <div class="panel-title">
+            <span class="panel-icon"> 🚨 </span>
 
-            <div class="panel-title">
+            <h2>Severity</h2>
+          </div>
 
-                <span class="panel-icon">
-                    📋
-                </span>
+          <div class="metric critical-text">
+            <span> CRITICAL </span>
 
-                <h2>Incident Status</h2>
+            <strong id="severity-critical"> 0 </strong>
+          </div>
 
-            </div>
+          <div class="metric high-text">
+            <span> HIGH </span>
 
+            <strong id="severity-high"> 0 </strong>
+          </div>
 
-            <div class="metric">
+          <div class="metric medium-text">
+            <span> MEDIUM </span>
 
-                <span>
-                    OPEN
-                </span>
+            <strong id="severity-medium"> 0 </strong>
+          </div>
 
-                <strong id="status-open">
-                    0
-                </strong>
+          <div class="metric low-text">
+            <span> LOW </span>
 
-            </div>
-
-
-            <div class="metric">
-
-                <span>
-                    INVESTIGATING
-                </span>
-
-                <strong id="status-investigating">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div class="metric">
-
-                <span>
-                    RESOLVED
-                </span>
-
-                <strong id="status-resolved">
-                    0
-                </strong>
-
-            </div>
-
+            <strong id="severity-low"> 0 </strong>
+          </div>
         </div>
+      </section>
 
-
-
-        <!-- SEVERITY -->
-
-        <div class="panel">
-
-            <div class="panel-title">
-
-                <span class="panel-icon">
-                    🚨
-                </span>
-
-                <h2>Severity</h2>
-
-            </div>
-
-
-            <div class="metric critical-text">
-
-                <span>
-                    CRITICAL
-                </span>
-
-                <strong id="severity-critical">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div class="metric high-text">
-
-                <span>
-                    HIGH
-                </span>
-
-                <strong id="severity-high">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div class="metric medium-text">
-
-                <span>
-                    MEDIUM
-                </span>
-
-                <strong id="severity-medium">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div class="metric low-text">
-
-                <span>
-                    LOW
-                </span>
-
-                <strong id="severity-low">
-                    0
-                </strong>
-
-            </div>
-
-        </div>
-
-
-    </section>
-
-
-
-    <!-- =========================
-         SECURITY INCIDENTS
-    ========================== -->
-
-    <section class="panel incidents-panel">
-
-
+      <section class="panel incidents-panel">
         <div class="panel-header">
+          <div>
+            <h2>🚨 Security Incidents</h2>
 
-            <div>
+            <p class="panel-subtitle">
+              Detected security events requiring analyst attention
+            </p>
+          </div>
 
-                <h2>
-                    🚨 Security Incidents
-                </h2>
-
-                <p class="panel-subtitle">
-                    Detected security events requiring analyst attention
-                </p>
-
-            </div>
-
-
-            <button
-                class="refresh-button"
-                onclick="loadDashboard()"
-            >
-                ↻ Refresh
-            </button>
-
+          <button class="refresh-button" onclick="loadDashboard()">
+            ↻ Refresh
+          </button>
         </div>
-
-
-
-        <!-- FILTERS -->
 
         <div class="filters">
+          <div class="filter-group">
+            <label for="search-input"> Search </label>
 
+            <input
+              type="text"
+              id="search-input"
+              placeholder="🔎 User, IP, incident..."
+              oninput="filterIncidents()"
+            />
+          </div>
 
-            <div class="filter-group">
+          <div class="filter-group">
+            <label for="severity-filter"> Severity </label>
 
-                <label for="search-input">
-                    Search
-                </label>
+            <select id="severity-filter" onchange="filterIncidents()">
+              <option value="ALL">All Severities</option>
 
-                <input
-                    type="text"
-                    id="search-input"
-                    placeholder="🔎 User, IP, incident..."
-                    oninput="filterIncidents()"
-                >
+              <option value="CRITICAL">Critical</option>
 
-            </div>
+              <option value="HIGH">High</option>
 
+              <option value="MEDIUM">Medium</option>
 
+              <option value="LOW">Low</option>
+            </select>
+          </div>
 
-            <div class="filter-group">
+          <div class="filter-group">
+            <label for="status-filter"> Status </label>
 
-                <label for="severity-filter">
-                    Severity
-                </label>
+            <select id="status-filter" onchange="filterIncidents()">
+              <option value="ALL">All Statuses</option>
 
-                <select
-                    id="severity-filter"
-                    onchange="filterIncidents()"
-                >
+              <option value="OPEN">Open</option>
 
-                    <option value="ALL">
-                        All Severities
-                    </option>
+              <option value="INVESTIGATING">Investigating</option>
 
-                    <option value="CRITICAL">
-                        Critical
-                    </option>
-
-                    <option value="HIGH">
-                        High
-                    </option>
-
-                    <option value="MEDIUM">
-                        Medium
-                    </option>
-
-                    <option value="LOW">
-                        Low
-                    </option>
-
-                </select>
-
-            </div>
-
-
-
-            <div class="filter-group">
-
-                <label for="status-filter">
-                    Status
-                </label>
-
-                <select
-                    id="status-filter"
-                    onchange="filterIncidents()"
-                >
-
-                    <option value="ALL">
-                        All Statuses
-                    </option>
-
-                    <option value="OPEN">
-                        Open
-                    </option>
-
-                    <option value="INVESTIGATING">
-                        Investigating
-                    </option>
-
-                    <option value="RESOLVED">
-                        Resolved
-                    </option>
-
-                </select>
-
-            </div>
-
-
+              <option value="RESOLVED">Resolved</option>
+            </select>
+          </div>
         </div>
-
-
-
-        <!-- INCIDENT CARDS -->
 
         <div id="incidents-container">
+          <div class="loading">
+            <div class="loading-spinner"></div>
 
-            <div class="loading">
-
-                <div class="loading-spinner"></div>
-
-                <p>
-                    Loading security incidents...
-                </p>
-
-            </div>
-
+            <p>Loading security incidents...</p>
+          </div>
         </div>
+      </section>
 
-
-    </section>
-
-
-
-    <!-- =========================
-         INVESTIGATION MODAL
-    ========================== -->
-
-    <div
-        id="investigation-modal"
-        class="modal hidden"
-    >
-
+      <div id="investigation-modal" class="modal hidden">
         <div class="modal-content">
+          <div class="modal-header">
+            <div>
+              <span class="modal-label"> SOC ANALYST VIEW </span>
 
-
-            <div class="modal-header">
-
-                <div>
-
-                    <span class="modal-label">
-                        SOC ANALYST VIEW
-                    </span>
-
-                    <h2>
-                        🔍 Incident Investigation
-                    </h2>
-
-                </div>
-
-
-                <button
-                    class="close-button"
-                    onclick="closeInvestigation()"
-                    aria-label="Close investigation"
-                >
-                    ✕
-                </button>
-
+              <h2>🔍 Incident Investigation</h2>
             </div>
 
+            <button
+              class="close-button"
+              onclick="closeInvestigation()"
+              aria-label="Close investigation"
+            >
+              ✕
+            </button>
+          </div>
 
-            <div id="investigation-content">
-
-                <div class="loading">
-
-                    Loading investigation...
-
-                </div>
-
-            </div>
-
-
+          <div id="investigation-content">
+            <div class="loading">Loading investigation...</div>
+          </div>
         </div>
+      </div>
+    </main>
 
-    </div>
-
-
-</main>
-
-
-<script src="app.js"></script>
-
-</body>
-
+    <script src="app.js"></script>
+  </body>
 </html>

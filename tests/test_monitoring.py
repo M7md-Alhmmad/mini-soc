@@ -10,12 +10,7 @@ from src.main import process_event_batch
 
 
 def add_event(at, event_type="LOGIN_SUCCESS", username="alice"):
-    database.insert_event(
-        at.isoformat(),
-        event_type,
-        username,
-        "203.0.113.20"
-    )
+    database.insert_event(at.isoformat(), event_type, username, "203.0.113.20")
 
 
 def test_checkpoint_recovers_offline_events(isolated_database):
@@ -31,7 +26,7 @@ def test_checkpoint_recovers_offline_events(isolated_database):
         first_batch,
         detector=lambda events: processed_batches.append(
             [event[0] for event in events]
-        )
+        ),
     )
 
     assert checkpoint == 2
@@ -42,7 +37,7 @@ def test_checkpoint_recovers_offline_events(isolated_database):
         add_event(
             start + timedelta(minutes=1, seconds=offset * 10),
             "LOGIN_FAILED",
-            username="offline-user"
+            username="offline-user",
         )
 
     restarted_checkpoint = database.get_or_create_monitor_checkpoint()
@@ -53,13 +48,13 @@ def test_checkpoint_recovers_offline_events(isolated_database):
     assert checkpoint == 7
     assert database.get_monitor_checkpoint() == 7
     assert database.get_events_after_id(checkpoint) == []
-    assert [incident[1] for incident in database.get_incidents()] == [
-        "BRUTE_FORCE"
-    ]
-    assert process_event_batch(
-        [],
-        detector=lambda events: processed_batches.append(events)
-    ) is None
+    assert [incident[1] for incident in database.get_incidents()] == ["BRUTE_FORCE"]
+    assert (
+        process_event_batch(
+            [], detector=lambda events: processed_batches.append(events)
+        )
+        is None
+    )
     assert processed_batches == [[1, 2]]
 
 
@@ -104,12 +99,12 @@ def test_checkpoint_survives_new_python_process(isolated_database):
             (
                 "from src.database import get_monitor_checkpoint; "
                 "print(get_monitor_checkpoint())"
-            )
+            ),
         ],
         check=True,
         capture_output=True,
         text=True,
-        env=environment
+        env=environment,
     )
 
     assert result.stdout.strip() == "42"

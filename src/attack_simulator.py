@@ -3,11 +3,7 @@ from datetime import datetime
 from .database import insert_event
 
 
-def simulate_brute_force(
-    username="admin",
-    ip_address="203.0.113.50",
-    attempts=10
-):
+def simulate_brute_force(username="admin", ip_address="203.0.113.50", attempts=10):
 
     print("[ATTACK] Starting brute-force simulation...")
     print(f"[ATTACK] Target user: {username}")
@@ -16,31 +12,23 @@ def simulate_brute_force(
     print()
 
     for attempt in range(1, attempts + 1):
-
         timestamp = datetime.now().isoformat()
 
         insert_event(
             timestamp=timestamp,
             event_type="LOGIN_FAILED",
             username=username,
-            ip_address=ip_address
+            ip_address=ip_address,
         )
 
-        print(
-            f"[ATTACK] Failed login "
-            f"{attempt}/{attempts}"
-        )
+        print(f"[ATTACK] Failed login {attempt}/{attempts}")
 
     print()
     print("[ATTACK] Simulation complete.")
     print("[ATTACK] Logs inserted into database.")
 
 
-def simulate_port_scan(
-    username="scanner",
-    ip_address="198.51.100.25",
-    ports=20
-):
+def simulate_port_scan(username="scanner", ip_address="198.51.100.25", ports=20):
 
     print("[ATTACK] Starting port-scan simulation...")
     print(f"[ATTACK] Source IP: {ip_address}")
@@ -48,20 +36,16 @@ def simulate_port_scan(
     print()
 
     for port in range(1, ports + 1):
-
         timestamp = datetime.now().isoformat()
 
         insert_event(
             timestamp=timestamp,
             event_type="PORT_SCAN",
             username=username,
-            ip_address=ip_address
+            ip_address=ip_address,
         )
 
-        print(
-            f"[ATTACK] Port "
-            f"{port}/{ports} scanned"
-        )
+        print(f"[ATTACK] Port {port}/{ports} scanned")
 
     print()
     print("[ATTACK] Port-scan simulation complete.")
@@ -69,9 +53,7 @@ def simulate_port_scan(
 
 
 def simulate_account_compromise(
-    username="admin",
-    ip_address="203.0.113.50",
-    failed_attempts=10
+    username="admin", ip_address="203.0.113.50", failed_attempts=10
 ):
 
     print("[ATTACK] Starting account-compromise simulation...")
@@ -81,20 +63,16 @@ def simulate_account_compromise(
     print()
 
     for attempt in range(1, failed_attempts + 1):
-
         timestamp = datetime.now().isoformat()
 
         insert_event(
             timestamp=timestamp,
             event_type="LOGIN_FAILED",
             username=username,
-            ip_address=ip_address
+            ip_address=ip_address,
         )
 
-        print(
-            f"[ATTACK] Failed login "
-            f"{attempt}/{failed_attempts}"
-        )
+        print(f"[ATTACK] Failed login {attempt}/{failed_attempts}")
 
     timestamp = datetime.now().isoformat()
 
@@ -102,7 +80,7 @@ def simulate_account_compromise(
         timestamp=timestamp,
         event_type="LOGIN_SUCCESS",
         username=username,
-        ip_address=ip_address
+        ip_address=ip_address,
     )
 
     print()
@@ -112,25 +90,14 @@ def simulate_account_compromise(
 
 
 if __name__ == "__main__":
-
-    simulate_brute_force(
-        username="admin",
-        ip_address="203.0.113.50",
-        attempts=10
-    )
+    simulate_brute_force(username="admin", ip_address="203.0.113.50", attempts=10)
 
     print()
 
-    simulate_port_scan(
-        username="scanner",
-        ip_address="198.51.100.25",
-        ports=20
-    )
+    simulate_port_scan(username="scanner", ip_address="198.51.100.25", ports=20)
 
     print()
 
     simulate_account_compromise(
-        username="compromised_user",
-        ip_address="192.0.2.100",
-        failed_attempts=10
+        username="compromised_user", ip_address="192.0.2.100", failed_attempts=10
     )

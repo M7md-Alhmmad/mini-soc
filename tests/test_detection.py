@@ -67,9 +67,7 @@ def test_port_scan_must_fit_in_five_minute_window(isolated_database):
     start = datetime(2026, 1, 1, 12, 0, 0)
     for offset in range(10):
         add_event(
-            start + timedelta(seconds=offset * 40),
-            "PORT_SCAN",
-            username="scanner"
+            start + timedelta(seconds=offset * 40), "PORT_SCAN", username="scanner"
         )
 
     run_detection()
@@ -79,7 +77,7 @@ def test_port_scan_must_fit_in_five_minute_window(isolated_database):
         add_event(
             start + timedelta(hours=1, seconds=offset * 10),
             "PORT_SCAN",
-            username="scanner"
+            username="scanner",
         )
 
     run_detection()
@@ -99,9 +97,7 @@ def test_port_scan_detects_normal_valid_window():
 def test_port_scan_survives_trailing_stale_event():
     events = port_scan_events(10)
     stale_timestamp = datetime(2026, 1, 1, 12, 10, 0).isoformat()
-    events.append(
-        (11, stale_timestamp, "PORT_SCAN", "scanner", "198.51.100.25")
-    )
+    events.append((11, stale_timestamp, "PORT_SCAN", "scanner", "198.51.100.25"))
 
     alerts = detect_port_scan(events)
 
@@ -115,9 +111,7 @@ def test_port_scan_below_threshold_is_not_detected():
 
 
 def test_port_scan_spread_outside_window_is_not_detected():
-    assert detect_port_scan(
-        port_scan_events(10, spacing_seconds=40)
-    ) == []
+    assert detect_port_scan(port_scan_events(10, spacing_seconds=40)) == []
 
 
 def test_port_scan_more_than_threshold_uses_full_window():
@@ -135,7 +129,7 @@ def test_incremental_port_scan_uses_prior_context(isolated_database):
             start + timedelta(seconds=offset * 10),
             "PORT_SCAN",
             username="scanner",
-            ip_address="198.51.100.25"
+            ip_address="198.51.100.25",
         )
 
     run_detection(database.get_events_after_id(0))
@@ -146,7 +140,7 @@ def test_incremental_port_scan_uses_prior_context(isolated_database):
             start + timedelta(seconds=offset * 10),
             "PORT_SCAN",
             username="scanner",
-            ip_address="198.51.100.25"
+            ip_address="198.51.100.25",
         )
 
     run_detection(database.get_events_after_id(8))

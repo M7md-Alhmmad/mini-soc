@@ -1,47 +1,44 @@
-import sqlite3
 import os
-from pathlib import Path
+import sqlite3
 from datetime import datetime
-
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
-DATABASE_PATH = Path(
-    os.getenv("MINI_SOC_DATABASE", DATA_DIR / "security_events.db")
-)
+DATABASE_PATH = Path(os.getenv("MINI_SOC_DATABASE", DATA_DIR / "security_events.db"))
 DEFAULT_MONITOR_STATE_KEY = "default_monitor"
 
 RESPONSE_ACTIONS = {
     "DISABLE_ACCOUNT": {
         "label": "Disable account",
         "completed_details": "Account disabled",
-        "reopened_details": "Account-disable action reopened"
+        "reopened_details": "Account-disable action reopened",
     },
     "RESET_PASSWORD": {
         "label": "Reset password",
         "completed_details": "Password reset",
-        "reopened_details": "Password-reset action reopened"
+        "reopened_details": "Password-reset action reopened",
     },
     "BLOCK_IP": {
         "label": "Block attacker IP",
         "completed_details": "Attacker IP blocked",
-        "reopened_details": "IP-block action reopened"
+        "reopened_details": "IP-block action reopened",
     },
     "REVOKE_SESSIONS": {
         "label": "Revoke active sessions",
         "completed_details": "Active sessions revoked",
-        "reopened_details": "Session-revocation action reopened"
+        "reopened_details": "Session-revocation action reopened",
     },
     "ISOLATE_ENDPOINT": {
         "label": "Isolate endpoint",
         "completed_details": "Endpoint isolated",
-        "reopened_details": "Endpoint-isolation action reopened"
+        "reopened_details": "Endpoint-isolation action reopened",
     },
     "COLLECT_EVIDENCE": {
         "label": "Collect evidence",
         "completed_details": "Evidence collected",
-        "reopened_details": "Evidence-collection action reopened"
-    }
+        "reopened_details": "Evidence-collection action reopened",
+    },
 }
 
 
@@ -49,10 +46,7 @@ def get_connection():
 
     DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-    connection = sqlite3.connect(
-        DATABASE_PATH,
-        timeout=10
-    )
+    connection = sqlite3.connect(DATABASE_PATH, timeout=10)
 
     connection.execute("PRAGMA foreign_keys = ON")
     connection.execute("PRAGMA busy_timeout = 10000")
@@ -135,13 +129,9 @@ def create_tables():
         PRAGMA table_info(incidents)
     """)
 
-    columns = [
-        row[1]
-        for row in cursor.fetchall()
-    ]
+    columns = [row[1] for row in cursor.fetchall()]
 
     if "risk_score" not in columns:
-
         cursor.execute("""
             ALTER TABLE incidents
             ADD COLUMN risk_score INTEGER DEFAULT 0
@@ -171,17 +161,13 @@ def create_tables():
     connection.close()
 
 
-def insert_event(
-    timestamp,
-    event_type,
-    username,
-    ip_address
-):
+def insert_event(timestamp, event_type, username, ip_address):
 
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO events (
             timestamp,
             event_type,
@@ -189,12 +175,9 @@ def insert_event(
             ip_address
         )
         VALUES (?, ?, ?, ?)
-    """, (
-        timestamp,
-        event_type,
-        username,
-        ip_address
-    ))
+    """,
+        (timestamp, event_type, username, ip_address),
+    )
 
     connection.commit()
     connection.close()
@@ -223,14 +206,13 @@ def get_events():
     return events
 
 
-def get_events_after_id(
-    event_id
-):
+def get_events_after_id(event_id):
 
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT
             id,
             timestamp,
@@ -240,9 +222,9 @@ def get_events_after_id(
         FROM events
         WHERE id > ?
         ORDER BY id ASC
-    """, (
-        event_id,
-    ))
+    """,
+        (event_id,),
+    )
 
     events = cursor.fetchall()
 
@@ -256,7 +238,8 @@ def get_events_between(start_timestamp, end_timestamp):
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT
             id,
             timestamp,
@@ -266,10 +249,9 @@ def get_events_between(start_timestamp, end_timestamp):
         FROM events
         WHERE timestamp >= ? AND timestamp <= ?
         ORDER BY timestamp ASC, id ASC
-    """, (
-        start_timestamp,
-        end_timestamp
-    ))
+    """,
+        (start_timestamp, end_timestamp),
+    )
 
     events = cursor.fetchall()
     connection.close()
@@ -291,10 +273,7 @@ def get_latest_event_id():
 
     connection.close()
 
-    if (
-        result is None
-        or result[0] is None
-    ):
+    if result is None or result[0] is None:
         return 0
 
     return result[0]
@@ -308,7 +287,7 @@ def get_monitor_checkpoint(state_key=DEFAULT_MONITOR_STATE_KEY):
         FROM monitor_state
         WHERE state_key = ?
         """,
-        (state_key,)
+        (state_key,),
     ).fetchone()
     connection.close()
     return row[0] if row else None
@@ -324,7 +303,7 @@ def get_or_create_monitor_checkpoint(state_key=DEFAULT_MONITOR_STATE_KEY):
         FROM monitor_state
         WHERE state_key = ?
         """,
-        (state_key,)
+        (state_key,),
     ).fetchone()
 
     if row is None:
@@ -340,7 +319,7 @@ def get_or_create_monitor_checkpoint(state_key=DEFAULT_MONITOR_STATE_KEY):
             )
             VALUES (?, ?, ?)
             """,
-            (state_key, latest_event_id, datetime.now().isoformat())
+            (state_key, latest_event_id, datetime.now().isoformat()),
         )
         connection.commit()
         connection.close()
@@ -351,10 +330,7 @@ def get_or_create_monitor_checkpoint(state_key=DEFAULT_MONITOR_STATE_KEY):
     return row[0]
 
 
-def update_monitor_checkpoint(
-    event_id,
-    state_key=DEFAULT_MONITOR_STATE_KEY
-):
+def update_monitor_checkpoint(event_id, state_key=DEFAULT_MONITOR_STATE_KEY):
     connection = get_connection()
     connection.execute(
         """
@@ -369,7 +345,7 @@ def update_monitor_checkpoint(
             last_processed_event_id = excluded.last_processed_event_id,
             updated_at = excluded.updated_at
         """,
-        (state_key, event_id, datetime.now().isoformat())
+        (state_key, event_id, datetime.now().isoformat()),
     )
     connection.commit()
     connection.close()
@@ -383,13 +359,14 @@ def insert_incident(
     failed_attempts,
     timestamp,
     mitre_technique,
-    risk_score=0
+    risk_score=0,
 ):
 
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO incidents (
             incident_type,
             severity,
@@ -403,22 +380,25 @@ def insert_incident(
             risk_score
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        incident_type,
-        severity,
-        username,
-        ip_address,
-        failed_attempts,
-        timestamp,
-        "OPEN",
-        mitre_technique,
-        "",
-        risk_score
-    ))
+    """,
+        (
+            incident_type,
+            severity,
+            username,
+            ip_address,
+            failed_attempts,
+            timestamp,
+            "OPEN",
+            mitre_technique,
+            "",
+            risk_score,
+        ),
+    )
 
     incident_id = cursor.lastrowid
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO incident_history (
             incident_id,
             action,
@@ -426,12 +406,14 @@ def insert_incident(
             timestamp
         )
         VALUES (?, ?, ?, ?)
-    """, (
-        incident_id,
-        "INCIDENT_CREATED",
-        f"{incident_type} incident detected",
-        timestamp
-    ))
+    """,
+        (
+            incident_id,
+            "INCIDENT_CREATED",
+            f"{incident_type} incident detected",
+            timestamp,
+        ),
+    )
 
     connection.commit()
     connection.close()
@@ -468,14 +450,13 @@ def get_incidents():
     return incidents
 
 
-def get_incident(
-    incident_id
-):
+def get_incident(incident_id):
 
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT
             id,
             incident_type,
@@ -490,9 +471,9 @@ def get_incident(
             risk_score
         FROM incidents
         WHERE id = ?
-    """, (
-        incident_id,
-    ))
+    """,
+        (incident_id,),
+    )
 
     incident = cursor.fetchone()
 
@@ -501,45 +482,41 @@ def get_incident(
     return incident
 
 
-def update_incident_status(
-    incident_id,
-    status
-):
+def update_incident_status(incident_id, status):
 
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT status
         FROM incidents
         WHERE id = ?
-    """, (
-        incident_id,
-    ))
+    """,
+        (incident_id,),
+    )
 
     result = cursor.fetchone()
 
     if result is None:
-
         connection.close()
         return False
 
     old_status = result[0]
 
-    cursor.execute("""
+    cursor.execute(
+        """
         UPDATE incidents
         SET status = ?
         WHERE id = ?
-    """, (
-        status,
-        incident_id
-    ))
-
-    timestamp = (
-        datetime.now().isoformat()
+    """,
+        (status, incident_id),
     )
 
-    cursor.execute("""
+    timestamp = datetime.now().isoformat()
+
+    cursor.execute(
+        """
         INSERT INTO incident_history (
             incident_id,
             action,
@@ -547,12 +524,14 @@ def update_incident_status(
             timestamp
         )
         VALUES (?, ?, ?, ?)
-    """, (
-        incident_id,
-        "STATUS_CHANGED",
-        f"Status changed from {old_status} to {status}",
-        timestamp
-    ))
+    """,
+        (
+            incident_id,
+            "STATUS_CHANGED",
+            f"Status changed from {old_status} to {status}",
+            timestamp,
+        ),
+    )
 
     connection.commit()
     connection.close()
@@ -560,21 +539,19 @@ def update_incident_status(
     return True
 
 
-def update_incident_note(
-    incident_id,
-    note
-):
+def update_incident_note(incident_id, note):
 
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT analyst_note
         FROM incidents
         WHERE id = ?
-    """, (
-        incident_id,
-    ))
+    """,
+        (incident_id,),
+    )
 
     result = cursor.fetchone()
 
@@ -582,20 +559,19 @@ def update_incident_note(
         connection.close()
         return False
 
-    cursor.execute("""
+    cursor.execute(
+        """
         UPDATE incidents
         SET analyst_note = ?
         WHERE id = ?
-    """, (
-        note,
-        incident_id
-    ))
-
-    timestamp = (
-        datetime.now().isoformat()
+    """,
+        (note, incident_id),
     )
 
-    cursor.execute("""
+    timestamp = datetime.now().isoformat()
+
+    cursor.execute(
+        """
         INSERT INTO incident_history (
             incident_id,
             action,
@@ -603,12 +579,9 @@ def update_incident_note(
             timestamp
         )
         VALUES (?, ?, ?, ?)
-    """, (
-        incident_id,
-        "ANALYST_NOTE_UPDATED",
-        "Analyst note updated",
-        timestamp
-    ))
+    """,
+        (incident_id, "ANALYST_NOTE_UPDATED", "Analyst note updated", timestamp),
+    )
 
     connection.commit()
     connection.close()
@@ -616,14 +589,13 @@ def update_incident_note(
     return True
 
 
-def get_incident_history(
-    incident_id
-):
+def get_incident_history(incident_id):
 
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT
             id,
             incident_id,
@@ -633,9 +605,9 @@ def get_incident_history(
         FROM incident_history
         WHERE incident_id = ?
         ORDER BY id ASC
-    """, (
-        incident_id,
-    ))
+    """,
+        (incident_id,),
+    )
 
     history = cursor.fetchall()
 
@@ -649,21 +621,19 @@ def get_incident_response_actions(incident_id):
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT
             action_type,
             completed,
             completed_at
         FROM incident_response_actions
         WHERE incident_id = ?
-    """, (
-        incident_id,
-    ))
+    """,
+        (incident_id,),
+    )
 
-    stored_actions = {
-        row[0]: row
-        for row in cursor.fetchall()
-    }
+    stored_actions = {row[0]: row for row in cursor.fetchall()}
 
     connection.close()
 
@@ -672,21 +642,19 @@ def get_incident_response_actions(incident_id):
     for action_type, metadata in RESPONSE_ACTIONS.items():
         stored = stored_actions.get(action_type)
 
-        actions.append({
-            "action_type": action_type,
-            "label": metadata["label"],
-            "completed": bool(stored[1]) if stored else False,
-            "completed_at": stored[2] if stored else None
-        })
+        actions.append(
+            {
+                "action_type": action_type,
+                "label": metadata["label"],
+                "completed": bool(stored[1]) if stored else False,
+                "completed_at": stored[2] if stored else None,
+            }
+        )
 
     return actions
 
 
-def set_incident_response_action(
-    incident_id,
-    action_type,
-    completed
-):
+def set_incident_response_action(incident_id, action_type, completed):
 
     if action_type not in RESPONSE_ACTIONS:
         raise ValueError("Invalid response action type")
@@ -696,26 +664,27 @@ def set_incident_response_action(
 
     connection.execute("BEGIN IMMEDIATE")
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT id
         FROM incidents
         WHERE id = ?
-    """, (
-        incident_id,
-    ))
+    """,
+        (incident_id,),
+    )
 
     if cursor.fetchone() is None:
         connection.close()
         return None
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT completed, completed_at
         FROM incident_response_actions
         WHERE incident_id = ? AND action_type = ?
-    """, (
-        incident_id,
-        action_type
-    ))
+    """,
+        (incident_id, action_type),
+    )
 
     existing = cursor.fetchone()
     previous_completed = bool(existing[0]) if existing else False
@@ -727,13 +696,14 @@ def set_incident_response_action(
             "label": RESPONSE_ACTIONS[action_type]["label"],
             "completed": previous_completed,
             "completed_at": existing[1] if existing else None,
-            "changed": False
+            "changed": False,
         }
 
     timestamp = datetime.now().isoformat()
     completed_at = timestamp if completed else None
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO incident_response_actions (
             incident_id,
             action_type,
@@ -745,26 +715,18 @@ def set_incident_response_action(
         DO UPDATE SET
             completed = excluded.completed,
             completed_at = excluded.completed_at
-    """, (
-        incident_id,
-        action_type,
-        int(completed),
-        completed_at
-    ))
+    """,
+        (incident_id, action_type, int(completed), completed_at),
+    )
 
     history_action = (
-        "RESPONSE_ACTION_COMPLETED"
-        if completed
-        else "RESPONSE_ACTION_REOPENED"
+        "RESPONSE_ACTION_COMPLETED" if completed else "RESPONSE_ACTION_REOPENED"
     )
 
-    details_key = (
-        "completed_details"
-        if completed
-        else "reopened_details"
-    )
+    details_key = "completed_details" if completed else "reopened_details"
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO incident_history (
             incident_id,
             action,
@@ -772,12 +734,14 @@ def set_incident_response_action(
             timestamp
         )
         VALUES (?, ?, ?, ?)
-    """, (
-        incident_id,
-        history_action,
-        RESPONSE_ACTIONS[action_type][details_key],
-        timestamp
-    ))
+    """,
+        (
+            incident_id,
+            history_action,
+            RESPONSE_ACTIONS[action_type][details_key],
+            timestamp,
+        ),
+    )
 
     connection.commit()
     connection.close()
@@ -787,7 +751,7 @@ def set_incident_response_action(
         "label": RESPONSE_ACTIONS[action_type]["label"],
         "completed": completed,
         "completed_at": completed_at,
-        "changed": True
+        "changed": True,
     }
 
 

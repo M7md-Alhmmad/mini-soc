@@ -7,7 +7,6 @@ from .database import (
 )
 from .detection_engine import run_detection
 
-
 CHECK_INTERVAL = 3
 
 
@@ -51,10 +50,7 @@ def monitor_soc():
 
             print("\n" + "-" * 60)
             print(f"[SOC] {len(new_events)} new event(s) detected.")
-            print(
-                f"[SOC] Processing event IDs "
-                f"{first_event_id} -> {latest_event_id}\n"
-            )
+            print(f"[SOC] Processing event IDs {first_event_id} -> {latest_event_id}\n")
 
             try:
                 last_event_id = process_event_batch(new_events)
