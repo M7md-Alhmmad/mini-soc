@@ -2,9 +2,9 @@
 
 Mini SOC is a local Security Operations Center demonstration. It stores synthetic security events in SQLite, detects suspicious activity, correlates alerts into incidents, and exposes the results through FastAPI and a browser dashboard.
 
-[![Mini SOC incident investigation](docs/assets/mini-soc-dashboard.jpg)](docs/assets/mini-soc-demo.mp4)
+[![Mini SOC incident investigation](docs/assets/mini-soc-dashboard.jpg)](https://github.com/M7md-Alhmmad/mini-soc/releases/tag/v1.0.0)
 
-_Select the screenshot to open the 77-second demo video._
+[Watch the demo video](https://github.com/M7md-Alhmmad/mini-soc/releases/download/v1.0.0/mini-soc-demo.mp4)
 
 ## What it demonstrates
 
